@@ -1,0 +1,8 @@
+/build
+/log/
+/relase/
+/debug/
+/dist
+/install
+/swig_output
+*.log
