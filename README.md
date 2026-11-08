@@ -1319,10 +1319,10 @@ if __name__ == "__main__":
         trader_params = dict()
         trader_params['ExchangeID'] = "CFFEX"
         trader_params['BrokerID'] = "9999"
-        trader_params['Account'] = "188795"
-        trader_params['Password'] = "YYLyyl123#"
-        trader_params['AppID'] = "simnow_client_test"
-        trader_params['AuthCode'] = "0000000000000000"
+        trader_params['Account'] = "XXXX"
+        trader_params['Password'] = "XXXXX"
+        trader_params['AppID'] = "XXXXX"
+        trader_params['AuthCode'] = "XXXXX"
         
         td_api = ctp_td.CThostFtdcTraderApi.CreateFtdcTraderApi()
         td_spi = CTPTraderSpi(api=td_api, params=trader_params)
