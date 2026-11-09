@@ -68,7 +68,19 @@ macro(configure_ctp_module target_name module_name source_i ctp_lib)
 
     # MSVC 特定：启用标准异常处理
     if(MSVC)
-        target_compile_options(${target_name} PRIVATE /EHsc)
+        target_compile_options(${target_name} PRIVATE
+            /EHsc        # 标准异常处理
+            /bigobj      # 解决 C1128 节数超限
+            /utf-8       # 解决 C4819 代码页 936 警告
+            /wd4828      # 屏蔽 CTP 头文件 GBK 注释触发的 C4828
+        )
+        target_compile_definitions(${target_name} PRIVATE
+            Py_NO_LINK_LIB   # 防止隐式链接错误的 python313.lib
+        )
+        # 可选：将Python库目录加入链接搜索路径
+        if(Python3_LIBRARY_DIRS)
+            target_link_directories(${target_name} PRIVATE ${Python3_LIBRARY_DIRS})
+        endif()
     endif()
 
     set_target_properties(${target_name} PROPERTIES
