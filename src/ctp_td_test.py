@@ -673,5 +673,5 @@ if __name__ == "__main__":
         traceback.print_exc()
     finally:
         if td_api is not None:
-            print("[主流程] 释放行情 API")
+            print("[主流程] 释放交易 API")
             td_api.Release()

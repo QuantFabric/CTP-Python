@@ -19,7 +19,21 @@ Configured options: +pcre
 ```
 
 #### 3、SWIG原理
-
+- SWIG工作流程如下：
+```text
+ctp_td.i
+   │
+   ▼  swig -c++ -python -threads -I./include ctp_td.i
+   │
+   ├──▶ ctp_td_wrap.cxx   （含 %{ %} 注入的代码 + 为每个类/结构体生成的包装函数
+   │                        + typemap 转换逻辑 + director 转发代码）
+   └──▶ ctp_td.py         （Python 模块壳，含 CThostFtdcTraderApi/Spi 的代理类）
+          │
+          ▼  g++ / CMake 编译
+          │
+          └──▶ _ctp_td.cpython-313-*.so
+```
+- Python脚本执行流程如下：
 ```text
 import ctp_td
    │
@@ -32,17 +46,198 @@ ctp_td.py  ──内部──▶  import _ctp_td
 
 ### 二、SWIG使用
 #### 1、swig命令
+```bash
+swig --help
+Supported Target Language Options
+     -csharp         - Generate C# wrappers
+     -d              - Generate D wrappers
+     -go             - Generate Go wrappers
+     -guile          - Generate Guile wrappers
+     -java           - Generate Java wrappers
+     -javascript     - Generate Javascript wrappers
+     -lua            - Generate Lua wrappers
+     -octave         - Generate Octave wrappers
+     -perl5          - Generate Perl 5 wrappers
+     -php7           - Generate PHP 8 or later wrappers
+     -python         - Generate Python wrappers
+     -r              - Generate R (aka GNU S) wrappers
+     -ruby           - Generate Ruby wrappers
+     -scilab         - Generate Scilab wrappers
+     -tcl8           - Generate Tcl 8 wrappers
+     -xml            - Generate XML wrappers
 
+Experimental Target Language Options
+     -c              - Generate C wrappers
+     -ocaml          - Generate OCaml wrappers
 
-#### 2、
+Deprecated Target Language Options
+     -mzscheme       - Generate MzScheme/Racket wrappers
 
+General Options
+     -addextern      - Add extra extern declarations
+     -c++            - Enable C++ processing
+     -co <file>      - Check <file> out of the SWIG library
+     -copyctor       - Automatically generate copy constructors wherever possible
+     -cpperraswarn   - Treat the preprocessor #error statement as #warning (default)
+     -cppext <ext>   - Change file extension of generated C++ files to <ext>
+                       (default is cxx)
+     -copyright      - Display copyright notices
+     -debug-classes  - Display information about the classes found in the interface
+     -debug-module <n>- Display module parse tree at stages 1-4, <n> is a csv list of stages
+     -debug-symtabs  - Display symbol tables information
+     -debug-symbols  - Display target language symbols in the symbol tables
+     -debug-csymbols - Display C symbols in the symbol tables
+     -debug-lsymbols - Display target language layer symbols
+     -debug-quiet    - Display less parse tree node debug info when using other -debug options
+     -debug-tags     - Display information about the tags found in the interface
+     -debug-template - Display information for debugging templates
+     -debug-top <n>  - Display entire parse tree at stages 1-4, <n> is a csv list of stages
+     -debug-typedef  - Display information about the types and typedefs in the interface
+     -debug-typemap  - Display typemap debugging information
+     -debug-tmsearch - Display typemap search debugging information
+     -debug-tmused   - Display typemaps used debugging information
+     -directors      - Turn on director mode for all the classes, mainly for testing
+     -dirprot        - Turn on wrapping of protected members for director classes (default)
+     -D<symbol>[=<value>] - Define symbol <symbol> (for conditional compilation)
+     -E              - Preprocess only, does not generate wrapper code
+     -external-runtime [file] - Export the SWIG runtime stack
+     -fakeversion <v>- Make SWIG fake the program version number to <v>
+     -fcompact       - Compile in compact mode
+     -features <list>- Set global features, where <list> is a comma separated list of
+                       features, eg -features directors,autodoc=1
+                       If no explicit value is given to the feature, a default of 1 is used
+     -fastdispatch   - Enable fast dispatch mode to produce faster overload dispatcher code
+     -Fmicrosoft     - Display error/warning messages in Microsoft format
+     -Fstandard      - Display error/warning messages in commonly used format
+     -fvirtual       - Compile in virtual elimination mode
+     -help           - Display help
+     -I-             - Don't search the current directory
+     -I<dir>         - Look for SWIG files in directory <dir>
+     -ignoremissing  - Ignore missing include files
+     -importall      - Follow all #include statements as imports
+     -includeall     - Follow all #include statements
+     -l<ifile>       - Include SWIG library file <ifile>
+     -macroerrors    - Report errors inside macros
+     -M              - List all dependencies
+     -MD             - Is equivalent to `-M -MF <file>', except `-E' is not implied
+     -MF <file>      - Generate dependencies into <file> and continue generating wrappers
+     -MM             - List dependencies, but omit files in SWIG library
+     -MMD            - Like `-MD', but omit files in SWIG library
+     -module <name>  - Set module name to <name>
+     -MP             - Generate phony targets for all dependencies
+     -MT <target>    - Set the target of the rule emitted by dependency generation
+     -nocontract     - Turn off contract checking
+     -nocpperraswarn - Do not treat the preprocessor #error statement as #warning
+     -nodefaultctor  - Do not generate implicit default constructors
+     -nodefaultdtor  - Do not generate implicit default destructors
+     -nodirprot      - Do not wrap director protected members
+     -noexcept       - Do not wrap exception specifiers
+     -nofastdispatch - Disable fast dispatch mode (default)
+     -nopreprocess   - Skip the preprocessor step
+     -notemplatereduce - Disable reduction of the typedefs in templates
+     -O              - Enable the optimization options:
+                        -fastdispatch -fvirtual
+     -o <outfile>    - Set name of C/C++ output file to <outfile>
+     -oh <headfile>  - Set name of C++ output header file for directors to <headfile>
+     -outcurrentdir  - Set default output dir to current dir instead of input file's path
+     -outdir <dir>   - Set language specific files output directory to <dir>
+     -pcreversion    - Display PCRE2 version information
+     -small          - Compile in virtual elimination and compact mode
+     -std=<standard> - Set the C or C++ language <standard> for inputs
+     -swiglib        - Report location of SWIG library and exit
+     -templatereduce - Reduce all the typedefs in templates
+     -U<symbol>      - Undefine symbol <symbol>
+     -v              - Run in verbose mode
+     -version        - Display SWIG version number
+     -Wall           - Remove all warning suppression, also implies -Wextra
+     -Wallkw         - Enable keyword warnings for all the supported languages
+     -Werror         - Treat warnings as errors
+     -Wextra         - Adds the following additional warnings: 309,403,405,512,321,322
+     -w<list>        - Suppress/add warning messages, eg -w401,+321 - see Warnings.html
+     -xmlout <file>  - Write XML version of the parse tree to <file> after normal processing
+```
+- SWIG命令行参数体系采用模块化设计，主要分为语言指定、输入输出控制、预处理配置三大类别。
+    - 语言指定：
+        - -python：生成Python绑定代码
+        - -java：生成Java JNI接口
+        - -csharp：生成C#封装类
+    - 输入输出控制：
+        - -o <file>：指定生成的包装器文件名称
+        - -outdir <dir>：设置输出文件目录
+        - -I<dir>：添加头文件搜索路径（类似gcc的-I参数）
+    - 通用参数：
+        -D<name>[=value]：定义预处理宏
+        -U<name>：取消已定义的宏
+        -E：仅执行预处理并输出结果
+        -c++：启用C++支持
+        -O：优化生成代码
+        -Wall：显示所有警告信息
+        -std=<standard>：C++标准
+        -debug-typemap：输出typemap调试信息
 
+#### 2、接口文件语法
+- SWIG支持数据类型：
+    - int、short、long、unsigned short、unsigned long、unsigned char、signed char、bool等整型类型，但位数都不确定，因此从其它语言反向到C++映射时可能就会有数据丢失的问题。
+    - float、double完美支持。
+    - char会映射为只含单个字符的字符串，但对于c#来说会映射为c#的char。
+    - char*会映射为字符串，但也可以通过后续介绍的typemap指令将其映射为byte。
+    - long long类型需要谨慎使用：因为long long并不是所有的目标语言都支持。
+    - long double类型不被swig支持。
+    - int *，double ***，char **等指针、指针的指针等的包装swig完美全支持。
+    - 类、结构体、数组等复杂数据类型按照指针类型进行支持。
 
-#### 3、
+```swig
+%module ctp_td  // 指定生成的Python模块名
+%{
+// 原样插入到Swig生成的包装器代码中
+#include "ThostFtdcTraderApi.h"
+#include "ThostFtdcUserApiStruct.h"
+#include "ThostFtdcUserApiDataType.h"
+%}
+// 告诉Swig包含头文件中的定义，并为其生成Python包装
+%include "ThostFtdcUserApiDataType.h"
+%include "ThostFtdcUserApiStruct.h"
+%include "ThostFtdcTraderApi.h"
+```
+- %module指令定义了Python模块的名称。
+- %{ ... %}块中的代码会被直接复制到生成的C/C++包装器文件里，通常用于包含必要的头文件和前置声明。
+- %include指令则指示Swig去解析指定的头文件，并为其中的内容生成绑定代码。
 
+#### 3、回调机制
+- CTP API大量使用了回调机制，通过SPI(Server Provider Interface)类来回传市场数据、交易回报等异步消息。在C++中，需要继承CThostFtdcTraderSpi类并重写虚函数。在Python中，希望能以同样面向对象的方式处理回调函数。SWIG的director功能提供了回调机制支持，director允许Python类继承C++类，并重写其虚函数，SWIG会在底层处理好跨语言的虚函数调用。
+```swig
+%feature("director") CThostFtdcTraderSpi; 
+%feature("director") CThostFtdcMdSpi;
+```
+#### 4、中文编码处理
+- CTP API中许多字符串字段使用的是GB2312或GBK编码，而Python3内部使用UTF-8编码，因此需要使用typemap来告诉SWIG如何进行转换。在C++包装层，将GBK编码的字符串先转换为wchar_t宽字符，再转换为UTF-8编码，最后交给Python。
+```swig
+%typemap(out) char[ANY], char[] {
+    const std::string &gbstr($1); // $1代表C++中的原始字符串
+    // 创建转换环境，假设GBK编码
+    std::wstring_convert<std::codecvt_byname<wchar_t, char, std::mbstate_t>> conv(new std::codecvt_byname<wchar_t, char, std::mbstate_t>("zh_CN.GB18030"));
+    try {
+        std::wstring wstr = conv.from_bytes(gbstr);
+        std::wstring_convert<std::codecvt_utf8<wchar_t>> utf8_conv;
+        std::string utf8_str = utf8_conv.to_bytes(wstr);
+        $result = PyUnicode_FromStringAndSize(utf8_str.c_str(), utf8_str.size());
+    } catch (...) {
+        // 转换失败，返回空字符串
+        $result = PyUnicode_FromStringAndSize("", 0);
+    }
+}
+```
 
+#### 5、命名冲突
+- %ignore指令可以让swig忽略，不暴露给目标语言，让生成的目标语言接口更干净。CTP API头文件中可能包含一些不需要暴露给Python的常量、枚举或内部函数。
+```swig
+%ignore THOST_FTDC_VTC_BankBankToFuture;
+%ignore THOST_FTDC_VTC_BankFutureToBank;
+```
+- %rename指令可以函数或类起一个更Pythonic的名字，可以避免命名冲突。
 
-
+#### 6、类扩展功能
+- %extend用于给类增加新方法、覆写已有方法。
 
 
 ### 三、CTP Python接口封装
@@ -130,7 +325,7 @@ const static locale g_loc("zh_CN.GB18030");
 
 - 生成
 ```bash
-swig -threads -c++ -python -I./include ctp_td.i
+swig -threads -c++ -python -I./ctp/6.7.13/include ctp_td.i
 ```
 
 #### 2、CTP行情API接口描述
@@ -230,7 +425,7 @@ const static locale g_loc("zh_CN.GB18030");
 
 - 生成
 ```bash
-swig -threads -c++ -python -I./include ctp_md.i
+swig -threads -c++ -python -I./ctp/6.7.13/include ctp_md.i
 ```
 
 #### 3、编译构建
@@ -426,8 +621,8 @@ print('CTP 版本:', t.CThostFtdcTraderApi.CreateFtdcTraderApi().GetApiVersion()
 - 源码编译制作wheel安装包：
 ```bash
 pip install build  # 安装build包
-rm -rf build/ install/ dist/
-python -m build --wheel
+rm -rf build/ install/ dist/ swig_output/ #清理编译构建临时目录
+python -m build --wheel    # 编译构建打包
 ```
 - 安装包检查：
 ```bash
@@ -455,6 +650,10 @@ python -c "import ctp_wrap.ctp_td; print(ctp_wrap.ctp_td.__file__)"
 python -c "import ctp_wrap._ctp_md; print(ctp_wrap._ctp_md.__file__)"
 python -c "import ctp_wrap._ctp_td; print(ctp_wrap._ctp_td.__file__)"
 ```
+
+- 目前已经测试验证平台：
+    - RockLinux 10
+    - Windows 11
 
 #### 4、CTP行情API接口使用
 ```python
@@ -1365,7 +1564,7 @@ if __name__ == "__main__":
         traceback.print_exc()
     finally:
         if td_api is not None:
-            print("[主流程] 释放行情 API")
+            print("[主流程] 释放交易 API")
             td_api.Release()
 ```
 - 订单申报时确保报单价格根据当时行情价格不会成交，否则撤单报错。
